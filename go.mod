@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/getkin/kin-openapi v0.97.0
 	github.com/go-chi/chi v1.5.4
+	github.com/jackc/pgx/v4 v4.16.1
 )
 
 require (
@@ -18,7 +19,6 @@ require (
 	github.com/jackc/pgproto3/v2 v2.3.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/pgtype v1.11.0 // indirect
-	github.com/jackc/pgx/v4 v4.16.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
