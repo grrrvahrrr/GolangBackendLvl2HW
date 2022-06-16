@@ -1,0 +1,170 @@
+openapi: '3.0.2'
+info:
+  title: Ctalogue Test
+  version: '1.0'
+servers:
+  - url: https://api.server.test/v1
+components:
+  schemas:
+    User:
+      type: object      
+    Project:
+         type: object
+         properties:
+          users:
+            type: array
+            items: 
+              $ref: '#/components/schemas/User'        
+    Organization:
+          type: object
+          properties:
+            users:
+              type: array
+              items: 
+                $ref: '#/components/schemas/User'
+    Corpgroup:
+          type: object
+          properties:
+            users:
+              type: array
+              items: 
+                $ref: '#/components/schemas/User'
+    Community:
+          type: object
+          properties:
+            users:
+              type: array
+              items: 
+                $ref: '#/components/schemas/User'
+paths:
+  /addUser:
+    post:      
+      summary: "Add a new user"      
+      operationId: "addUser"       
+      requestBody:
+        description: json body
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        '400':
+          description: not a User
+        '500':
+          description: internal server error
+  /addEnv:
+    post:     
+      summary: "Add a new enviroment"      
+      operationId: "addEnv"       
+      requestBody:
+        description: json body
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/Project'
+                - $ref: '#/components/schemas/Organization'
+                - $ref: '#/components/schemas/Corpgroup'
+                - $ref: '#/components/schemas/Community'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/Project'
+                - $ref: '#/components/schemas/Organization'
+                - $ref: '#/components/schemas/Corpgroup'
+                - $ref: '#/components/schemas/Community'
+        '400':
+          description: not an Env
+        '500':
+          description: internal server error
+  /updateUserInEnv:
+    post:
+      summary: "set/delete user in enviroment"      
+      operationId: "updateUserInEnv"       
+      requestBody:
+        description: multipart form
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  env:
+                    anyOf:
+                      - $ref: '#/components/schemas/Project'
+                      - $ref: '#/components/schemas/Organization'
+                      - $ref: '#/components/schemas/Corpgroup'
+                      - $ref: '#/components/schemas/Community'
+                  operation:
+                    type: string
+      responses:
+        '200':
+          description: successful operation          
+        '400':
+          description: not an Env
+        '500':
+          description: internal server error
+  /searchUser:
+    get:
+      summary: "search user by name or enviroment"      
+      operationId: "searchUser"       
+      parameters:           
+        - in: query
+          name: searchparam
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/Project'
+              - $ref: '#/components/schemas/Organization'
+              - $ref: '#/components/schemas/Corpgroup'
+              - $ref: '#/components/schemas/Community'
+              - $ref: '#/components/schemas/User'
+
+      responses:
+        '200':
+          description: successful operation          
+        '400':
+          description: not an Env
+        '500':
+          description: internal server error
+
+  /searchEnv:
+    get:
+      summary: "search for env by user names or enviroment params"      
+      operationId: "searchEnv"       
+      parameters:
+        - in: query
+          name: user
+          schema:
+            type: array
+            items:
+             $ref: '#/components/schemas/User'
+        - in: query
+          name: env
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/Project'
+              - $ref: '#/components/schemas/Organization'
+              - $ref: '#/components/schemas/Corpgroup'
+              - $ref: '#/components/schemas/Community'
+
+      responses:
+        '200':
+          description: successful operation          
+        '400':
+          description: not an Env
+        '500':
+          description: internal server error

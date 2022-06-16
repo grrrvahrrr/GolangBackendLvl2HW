@@ -1,0 +1,10 @@
+package: openapichi
+generate:
+  chi-server: true
+  models: true
+  embedded-spec: true
+compatibility:
+  old-merge-schemas: true
+  old-aliasing: true
+  old-enum-conflicts: true
+output: openapi.go
