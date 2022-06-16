@@ -8,10 +8,10 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"fmt"
-	"net/http"	
+	"net/http"
 	"strings"
-	
-	"github.com/getkin/kin-openapi/openapi3"	
+
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi"
 )
 
