@@ -1,4 +1,4 @@
-module GoBeLvl2
+module gobelvl2
 
 go 1.18
 

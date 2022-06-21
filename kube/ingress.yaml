@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+
+kind: Ingress
+
+metadata:
+
+  name: gobelvl2-ing
+
+  annotations:
+
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+
+spec:
+
+  rules:
+
+    - host: gobelvl2.info
+
+      http:
+
+        paths:
+
+          - path: /
+
+            pathType: Prefix
+
+            backend:
+
+              service:
+
+                name: gobelvl2-srv
+
+                port:
+
+                  number: 8080

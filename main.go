@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"GoBeLvl2/config"
-	"GoBeLvl2/server"
-	"GoBeLvl2/version"
+	"gobelvl2/config"
+	"gobelvl2/server"
+	"gobelvl2/version"
 )
 
 func main() {

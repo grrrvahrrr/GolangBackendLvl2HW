@@ -14,7 +14,7 @@ ARG PROJECT
 ENV PROJECT=$PROJECT
 ENV GOSUMDB=off
 ENV GO111MODULE=on
-ENV WORKDIR=${GOPATH}/src/k8s-go-app
+ENV WORKDIR=${GOPATH}/src/gobelvl2
 
 COPY . ${WORKDIR}
 WORKDIR ${WORKDIR}
@@ -25,7 +25,7 @@ RUN set -xe ;\
 FROM golang:1.15.1
 EXPOSE 8080
 WORKDIR /go/bin
-COPY --from=builder /go/bin/k8s-go-app .
-COPY --from=builder ${GOPATH}/src/k8s-go-app/config/*.env ./config/
+COPY --from=builder /go/bin/gobelvl2 .
+COPY --from=builder ${GOPATH}/src/gobelvl2/config/*.env ./config/
 
-ENTRYPOINT ["/go/bin/k8s-go-app"]
+ENTRYPOINT ["/go/bin/gobelvl2"]

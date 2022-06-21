@@ -28,7 +28,7 @@ func (s Server) Serve(ctx context.Context) error {
 	e := echo.New()
 	e.HideBanner = true
 	e.Use(middleware.Recover())
-	e.Use(middleware.Recover())
+	//e.Use(middleware.Recover())
 	s.initHandlers(e)
 	go func() {
 		e.Logger.Infof("start server on port: %s", s.port)
