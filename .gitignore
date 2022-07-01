@@ -4,3 +4,4 @@ cmd/adminurl.db/
 cmd/data.db/
 cmd/shorturl.db/
 cmd/data.db/
+kube/k8s-g3-sergeyk-conf.yaml
