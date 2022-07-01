@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bitme
+  labels:
+    app: bitme
+spec:
+  replicas: 6
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 2
+      maxSurge: 2
+  template:
+    metadata:
+      labels:
+        app: bitme
+    spec:
+      volumes:
+        - name: src
+          emptyDir: { }
+      containers:
+        - name: bitme
+          image: docker.io/grrrvahrrr/bitme:latest
+          imagePullPolicy: Always
+          env:
+            - name: PORT
+              value: "8080"
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /__heartbeat_
+              port: 8080
+          readinessProbe:
+            httpGet:
+              path: /__heartbeat_
+              port: 8080
+          resources:
+            limits:
+              cpu: 2m
+              memory: 10Mi
+            requests:
+              cpu: 2m
+              memory: 10Mi
+  selector:
+    matchLabels:
+      app: bitme
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bitme
+  labels:
+    app: bitme
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: bitme
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    ingress.kubernetes.io/rewrite-target: /
+  labels:
+    app: bitme
+  name: bitme
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /home
+            pathType: Prefix
+            backend:
+              service:
+                name: bitme
+                port:
+                  number: 8080
