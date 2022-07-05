@@ -1,0 +1,94 @@
+version: "3.7"
+services:
+
+  postgres:
+    image: postgres:14.0
+    container_name: wbpostgres
+    restart: unless-stopped
+    ports:
+      - 5433:5432
+    volumes:
+      - /home/deus/db/data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data
+    networks:
+      - wbnet
+
+  migrate:
+        image: migrate/migrate
+        container_name: migratewbdb
+        networks:
+            - wbnet
+        volumes:
+            - ./migrations:/migrations
+        command: ["-path", "/migrations", "-database",  "postgres://wbuser:wb@postgres/wbl0db?sslmode=disable", "up"]
+        links:
+            - postgres
+
+  nats-streaming:
+    image: nats-streaming
+    container_name: wbnats
+    command:
+      - "-store"
+      - file
+      - "-dir"
+      - /data/msg
+    volumes:
+      - "./natsstore:/data"
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    networks:
+      - wbnet
+
+  redis:
+    image: "redis:alpine"
+    container_name: wbcache
+    ports:
+      - 6379:6379
+    command: redis-server
+    networks:
+      - wbnet
+
+  jaeger:
+    networks:
+      - wbnet
+    image: jaegertracing/all-in-one:latest
+    volumes:
+      - "./jaeger-ui.json:/etc/jaeger/jaeger-ui.json"
+    command: --query.ui-config /etc/jaeger/jaeger-ui.json
+    environment:
+      - METRICS_STORAGE_TYPE=prometheus
+      - PROMETHEUS_SERVER_URL=http://prometheus:9090
+    ports:
+      - "14250:14250"
+      - "14268:14268"
+      - "6831:6831/udp"
+      - "16686:16686"
+      - "16685:16685"
+
+  otel_collector:
+    networks:
+      - wbnet
+    image: otel/opentelemetry-collector-contrib:latest
+    ports:
+      - "14278:14278"
+    volumes:
+      - "./otel-collector-config.yml:/etc/otelcol/otel-collector-config.yml"
+    command: --config /etc/otelcol/otel-collector-config.yml
+    depends_on:
+      - jaeger
+
+  prometheus:
+    networks:
+      - wbnet
+    image: prom/prometheus:latest
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+
+networks:
+  wbnet:
