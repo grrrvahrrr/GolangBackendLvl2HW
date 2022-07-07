@@ -1,0 +1,150 @@
+version: "3.7"
+services:
+
+  shard_0:
+    image: docker.io/bitnami/postgresql:14
+    container_name: shard_0
+    restart: unless-stopped
+    ports:
+      - 5433:5432
+    volumes:
+      - /home/deus/db/data:/var/lib/postgresql/data
+    environment:
+      POSTGRESQL_REPLICATION_MODE: master
+      POSTGRESQL_REPLICATION_USER: replicator
+      POSTGRESQL_REPLICATION_PASSWORD: secret_password
+      POSTGRESQL_USERNAME: postgres
+      POSTGRESQL_PASSWORD: postgres
+      POSTGRESQL_DATABASE: postgres
+    networks:
+      - wbnet
+
+  replica_0:
+    image: docker.io/bitnami/postgresql:14
+    networks:
+      - wbnet
+    ports:
+    - 8101:5432
+    depends_on:
+    - shard_0
+    environment:
+    - POSTGRESQL_REPLICATION_MODE=slave
+    - POSTGRESQL_REPLICATION_USER=replicator
+    - POSTGRESQL_REPLICATION_PASSWORD=secret_password
+    - POSTGRESQL_MASTER_HOST=shard_0
+    - POSTGRESQL_MASTER_PORT_NUMBER=5432
+    - POSTGRESQL_PASSWORD=postgres
+    - ALLOW_EMPTY_PASSWORD=yes
+
+  shard_1:
+    image: docker.io/bitnami/postgresql:14
+    container_name: shard_1
+    restart: unless-stopped
+    ports:
+      - 8110:5432
+    volumes:
+      - /home/deus/db/data:/var/lib/postgresql/data
+    environment:
+      POSTGRESQL_REPLICATION_MODE: master
+      POSTGRESQL_REPLICATION_USER: replicator
+      POSTGRESQL_REPLICATION_PASSWORD: secret_password
+      POSTGRESQL_USERNAME: postgres
+      POSTGRESQL_PASSWORD: postgres
+      POSTGRESQL_DATABASE: postgres
+    networks:
+      - wbnet
+
+  replica_1:
+    image: docker.io/bitnami/postgresql:14
+    networks:
+      - wbnet
+    ports:
+    - 8111:5432
+    depends_on:
+    - shard_1
+    environment:
+    - POSTGRESQL_REPLICATION_MODE=slave
+    - POSTGRESQL_REPLICATION_USER=replicator
+    - POSTGRESQL_REPLICATION_PASSWORD=secret_password
+    - POSTGRESQL_MASTER_HOST=shard_1
+    - POSTGRESQL_MASTER_PORT_NUMBER=5432
+    - POSTGRESQL_PASSWORD=postgres
+    - ALLOW_EMPTY_PASSWORD=yes
+
+  shard_2:
+    image: docker.io/bitnami/postgresql:14
+    container_name: shard_2
+    restart: unless-stopped
+    ports:
+      - 8120:5432
+    volumes:
+      - /home/deus/db/data:/var/lib/postgresql/data
+    environment:
+      POSTGRESQL_REPLICATION_MODE: master
+      POSTGRESQL_REPLICATION_USER: replicator
+      POSTGRESQL_REPLICATION_PASSWORD: secret_password
+      POSTGRESQL_USERNAME: postgres
+      POSTGRESQL_PASSWORD: postgres
+      POSTGRESQL_DATABASE: postgres
+    networks:
+      - wbnet
+
+  replica_2:
+    image: docker.io/bitnami/postgresql:14
+    networks:
+      - wbnet
+    ports:
+    - 8121:5432
+    depends_on:
+    - shard_2
+    environment:
+    - POSTGRESQL_REPLICATION_MODE=slave
+    - POSTGRESQL_REPLICATION_USER=replicator
+    - POSTGRESQL_REPLICATION_PASSWORD=secret_password
+    - POSTGRESQL_MASTER_HOST=shard_2
+    - POSTGRESQL_MASTER_PORT_NUMBER=5432
+    - POSTGRESQL_PASSWORD=postgres
+    - ALLOW_EMPTY_PASSWORD=yes
+
+  migrate:
+        image: migrate/migrate
+        container_name: migratewbdb
+        networks:
+            - wbnet
+        volumes:
+            - ./migrations:/migrations
+        command: ["-path", "/migrations", "-database",  "postgres://postgres:postgres@shard_0/postgres?sslmode=disable", "up"]
+
+        links:
+            - shard_0
+            - shard_1
+            - shard_2
+
+  nats-streaming:
+    image: nats-streaming
+    container_name: wbnats
+    command:
+      - "-store"
+      - file
+      - "-dir"
+      - /data/msg
+    volumes:
+      - "./natsstore:/data"
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    networks:
+      - wbnet
+
+  redis:
+    image: "redis:alpine"
+    container_name: wbcache
+    ports:
+      - 6379:6379
+    command: redis-server
+    networks:
+      - wbnet
+
+
+networks:
+  wbnet:
