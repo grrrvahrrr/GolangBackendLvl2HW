@@ -1,16 +1,16 @@
+
+
+-- CREATE database wbl0db;
+
+-- CREATE USER wbuser password 'wb';
+
+-- GRANT all privileges on database wbl0db to wbuser;
+
+-- \c wbl0db wbuser;
+
+-- CREATE schema ordertest;
+
 BEGIN;
-
-CREATE database wbl0db;
-
-CREATE USER wbuser password 'wb';
-
-GRANT all privileges on database wbl0db to wbuser;
-
-\c wbl0db wbuser;
-
-CREATE schema ordertest;
-
-
 
 CREATE TABLE ordertest.orders (
     order_uid text PRIMARY KEY,

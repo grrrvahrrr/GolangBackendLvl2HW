@@ -2,10 +2,12 @@ package shardmanager
 
 import (
 	"errors"
+	"fmt"
+	"math"
 	"sync"
-)
 
-var ShardNow int
+	hash "github.com/theTardigrade/golang-hash"
+)
 
 type Shard struct {
 	Address string
@@ -13,32 +15,58 @@ type Shard struct {
 }
 
 type Manager struct {
-	size int
-	ss   *sync.Map
+	ss *sync.Map
+	sr *sync.Map
 }
 
 var (
 	ErrorShardNotFound = errors.New("shard not found")
 )
 
-func NewManager(size int) *Manager {
+func NewManager() *Manager {
 	return &Manager{
-		size: size,
-		ss:   &sync.Map{},
+		ss: &sync.Map{},
+		sr: &sync.Map{},
 	}
 }
 func (m *Manager) Add(s *Shard) {
 	m.ss.Store(s.Number, s)
 }
-func (m *Manager) Shard() (*Shard, error) {
-	n := ShardNow
+
+func (m *Manager) AddReplica(s *Shard) {
+	m.sr.Store(s.Number, s)
+}
+
+func (m *Manager) Shard(orderId string) (*Shard, error) {
+
 	length := lenSyncMap(m.ss)
-	if n > length-1 {
-		n = 0
-		ShardNow = 0
+
+	hash := hash.Int8String(orderId)
+
+	output := hash % int8(length)
+
+	fmt.Println("Shard: ", math.Abs(float64(output)))
+
+	if s, ok := m.ss.Load(int(math.Abs(float64(output)))); ok {
+
+		return s.(*Shard), nil
 	}
-	if s, ok := m.ss.Load(n); ok {
-		ShardNow++
+
+	return nil, ErrorShardNotFound
+}
+
+func (m *Manager) ShardReplica(orderId string) (*Shard, error) {
+
+	length := lenSyncMap(m.sr)
+
+	hash := hash.Int8String(orderId)
+
+	output := hash % int8(length)
+
+	fmt.Println("Replica: ", math.Abs(float64(output)))
+
+	if s, ok := m.sr.Load(int(math.Abs(float64(output)))); ok {
+
 		return s.(*Shard), nil
 	}
 

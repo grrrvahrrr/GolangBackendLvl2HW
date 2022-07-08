@@ -13,9 +13,9 @@ services:
       POSTGRESQL_REPLICATION_MODE: master
       POSTGRESQL_REPLICATION_USER: replicator
       POSTGRESQL_REPLICATION_PASSWORD: secret_password
-      POSTGRESQL_USERNAME: postgres
-      POSTGRESQL_PASSWORD: postgres
-      POSTGRESQL_DATABASE: postgres
+      POSTGRESQL_USERNAME: wbuser
+      POSTGRESQL_PASSWORD: wb
+      POSTGRESQL_DATABASE: wbl0db
     networks:
       - wbnet
 
@@ -33,7 +33,7 @@ services:
     - POSTGRESQL_REPLICATION_PASSWORD=secret_password
     - POSTGRESQL_MASTER_HOST=shard_0
     - POSTGRESQL_MASTER_PORT_NUMBER=5432
-    - POSTGRESQL_PASSWORD=postgres
+    - POSTGRESQL_PASSWORD=wb
     - ALLOW_EMPTY_PASSWORD=yes
 
   shard_1:
@@ -48,9 +48,9 @@ services:
       POSTGRESQL_REPLICATION_MODE: master
       POSTGRESQL_REPLICATION_USER: replicator
       POSTGRESQL_REPLICATION_PASSWORD: secret_password
-      POSTGRESQL_USERNAME: postgres
-      POSTGRESQL_PASSWORD: postgres
-      POSTGRESQL_DATABASE: postgres
+      POSTGRESQL_USERNAME: wbuser
+      POSTGRESQL_PASSWORD: wb
+      POSTGRESQL_DATABASE: wbl0db
     networks:
       - wbnet
 
@@ -68,7 +68,7 @@ services:
     - POSTGRESQL_REPLICATION_PASSWORD=secret_password
     - POSTGRESQL_MASTER_HOST=shard_1
     - POSTGRESQL_MASTER_PORT_NUMBER=5432
-    - POSTGRESQL_PASSWORD=postgres
+    - POSTGRESQL_PASSWORD=wb
     - ALLOW_EMPTY_PASSWORD=yes
 
   shard_2:
@@ -83,9 +83,9 @@ services:
       POSTGRESQL_REPLICATION_MODE: master
       POSTGRESQL_REPLICATION_USER: replicator
       POSTGRESQL_REPLICATION_PASSWORD: secret_password
-      POSTGRESQL_USERNAME: postgres
-      POSTGRESQL_PASSWORD: postgres
-      POSTGRESQL_DATABASE: postgres
+      POSTGRESQL_USERNAME: wbuser
+      POSTGRESQL_PASSWORD: wb
+      POSTGRESQL_DATABASE: wbl0db
     networks:
       - wbnet
 
@@ -103,22 +103,23 @@ services:
     - POSTGRESQL_REPLICATION_PASSWORD=secret_password
     - POSTGRESQL_MASTER_HOST=shard_2
     - POSTGRESQL_MASTER_PORT_NUMBER=5432
-    - POSTGRESQL_PASSWORD=postgres
+    - POSTGRESQL_PASSWORD=wb
     - ALLOW_EMPTY_PASSWORD=yes
 
-  migrate:
-        image: migrate/migrate
-        container_name: migratewbdb
-        networks:
-            - wbnet
-        volumes:
-            - ./migrations:/migrations
-        command: ["-path", "/migrations", "-database",  "postgres://postgres:postgres@shard_0/postgres?sslmode=disable", "up"]
+  flyway:
+    image: flyway/flyway:latest
+    networks:
+      - wbnet
+    command: -configFiles=/flyway/conf/flyway0.config,conf/flyway1.config,conf/flyway2.config -locations=filesystem:/flyway/sql -connectRetries=60 migrate
+    volumes:
+      - ${PWD}/sql_versions:/flyway/sql
+      - ${PWD}/docker-flyway0.config:/flyway/conf/flyway0.config
+      - ${PWD}/docker-flyway1.config:/flyway/conf/flyway1.config
+      - ${PWD}/docker-flyway2.config:/flyway/conf/flyway2.config
+    depends_on:
+      - shard_0
 
-        links:
-            - shard_0
-            - shard_1
-            - shard_2
+
 
   nats-streaming:
     image: nats-streaming

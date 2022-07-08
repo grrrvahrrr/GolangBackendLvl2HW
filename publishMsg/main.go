@@ -11,7 +11,7 @@ const (
 	clusterID = "test-cluster"
 	clientID  = "msgSender"
 	model     = `{
-		"order_uid": "b563feb7b2b84b6test0",
+		"order_uid": "b563feb7b2b84b6test6",
 		"track_number": "WBILMTESTTRACK",
 		"entry": "WBIL",
 		"delivery": {
@@ -24,7 +24,7 @@ const (
 		  "email": "test@gmail.com"
 		},
 		"payment": {
-		  "transaction": "b563feb7b2b84b6test",
+		  "transaction": "b563feb7b2b84b6test6",
 		  "request_id": "",
 		  "currency": "USD",
 		  "provider": "wbpay",

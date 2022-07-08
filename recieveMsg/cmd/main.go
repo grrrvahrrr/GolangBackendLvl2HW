@@ -23,7 +23,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 
 	//Creating DB Storage
-	m := shardmanager.NewManager(3)
+	m := shardmanager.NewManager()
 	m.Add(&shardmanager.Shard{
 		Address: "postgres://wbuser:wb@localhost:5433/wbl0db?sslmode=disable",
 		Number:  0,
@@ -36,6 +36,19 @@ func main() {
 		Address: "postgres://wbuser:wb@localhost:8120/wbl0db?sslmode=disable",
 		Number:  2,
 	})
+	m.AddReplica(&shardmanager.Shard{
+		Address: "postgres://wbuser:wb@localhost:8101/wbl0db?sslmode=disable",
+		Number:  0,
+	})
+	m.AddReplica(&shardmanager.Shard{
+		Address: "postgres://wbuser:wb@localhost:8111/wbl0db?sslmode=disable",
+		Number:  1,
+	})
+	m.AddReplica(&shardmanager.Shard{
+		Address: "postgres://wbuser:wb@localhost:8121/wbl0db?sslmode=disable",
+		Number:  2,
+	})
+
 	udf, err := database.NewPgStorage(m)
 	if err != nil {
 		log.Println("Error creating database files: ", err)

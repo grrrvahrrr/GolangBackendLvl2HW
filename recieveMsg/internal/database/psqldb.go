@@ -20,6 +20,7 @@ type PgStorage struct {
 	db *sql.DB
 	m  *shardmanager.Manager
 	p  *Pool
+	pr *Pool
 }
 
 //Connection pool
@@ -52,25 +53,37 @@ func (p *Pool) PoolConnection(addr string) (*sql.DB, error) {
 
 func NewPgStorage(m *shardmanager.Manager) (*PgStorage, error) {
 	p := NewPool()
+	pr := NewPool()
 
 	us := &PgStorage{
-		m: m,
-		p: p,
+		m:  m,
+		p:  p,
+		pr: pr,
 	}
 
 	return us, nil
 }
 
-func (pg *PgStorage) connection() (*sql.DB, error) {
-	s, err := pg.m.Shard()
+func (pg *PgStorage) connectionWrite(orderId string) (*sql.DB, error) {
+	s, err := pg.m.Shard(orderId)
 	if err != nil {
 		return nil, err
 	}
 	return pg.p.PoolConnection(s.Address)
 }
 
+func (pg *PgStorage) connectionRead(orderId string) (*sql.DB, error) {
+
+	s, err := pg.m.ShardReplica(orderId)
+	if err != nil {
+		return nil, err
+	}
+
+	return pg.pr.PoolConnection(s.Address)
+}
+
 func (pg *PgStorage) GetOrderInfo(ctx context.Context, orderId string) (*entities.Order, error) {
-	db, err := pg.connection()
+	db, err := pg.connectionRead(orderId)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +179,7 @@ func (pg *PgStorage) WriteCart(ctx context.Context, order entities.Order) error 
 }
 
 func (pg *PgStorage) WriteOrderData(ctx context.Context, order entities.Order) error {
-	db, err := pg.connection()
+	db, err := pg.connectionWrite(order.OrderId)
 	if err != nil {
 		return err
 	}
