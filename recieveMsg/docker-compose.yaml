@@ -118,6 +118,8 @@ services:
       - ${PWD}/docker-flyway2.config:/flyway/conf/flyway2.config
     depends_on:
       - shard_0
+      - shard_1
+      - shard_2
 
 
 
