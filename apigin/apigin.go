@@ -36,6 +36,11 @@ func (ag *ApiGin) register(c *gin.Context) {
 	authCode, err := ag.Redis.CacheRegister(c, login, password)
 	if err != nil {
 		c.Error(err)
+		return
+	}
+	if authCode == "user_already_registred" {
+		c.String(http.StatusBadRequest, "User Login: %s has already registered, please send your authenticatioon code to /auth", login)
+		return
 	}
 
 	fmt.Printf("User Login: %s, AuthCode: %s", login, authCode)
@@ -49,6 +54,8 @@ func (ag *ApiGin) auth(c *gin.Context) {
 	err := ag.Redis.CacheAuth(c, authCode)
 	if err != nil {
 		c.Error(err)
+		c.String(http.StatusBadRequest, err.Error())
+		return
 	}
 
 	fmt.Println("Authentication successful!")
