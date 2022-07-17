@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+option go_package = "grpc.auth";
+
+package grpcauth;
+
+// The greeting service definition.
+service AuthenticationService {
+  // Sends a greeting
+  rpc Register (RegistrationRequest) returns (RegistrationReply) {}
+  rpc Authenticate (AuthRequest) returns (AuthReply) {}
+}
+
+// The request message containing the user's name.
+message RegistrationRequest {
+  string login = 1;
+  string password = 2;
+}
+
+// The response message containing the greetings
+message RegistrationReply {
+  string authcode = 1;
+}
+
+message AuthRequest {
+  string authcode = 1;
+}
+
+message AuthReply {
+  string response = 1;
+}
